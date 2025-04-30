@@ -7,6 +7,11 @@ const { v4: uuidv4 } = require('uuid');
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.use((req, res, next) => {
+  req.me = users[1];
+  next();
+})
+
 
 let users = {
   1: {
@@ -63,6 +68,7 @@ app.post('/messages', (req, res) => {
   const message = {
     id,
     text: req.body.text,
+    userId: req.me.id,
   };
 
   messages[id] = message;
@@ -75,6 +81,21 @@ app.get('/messages', (req, res) => {
 
 app.get('/messages/:messageId', (req, res) => {
   return res.send(messages[req.params.messageId]);
+});
+
+app.delete('/messages/:messageId', (req, res) => {
+  const {
+    [req.params.messageId]: message,
+    ...otherMessages
+  } = messages;
+
+  messages = otherMessages;
+
+  return res.send(message);
+});
+
+app.get('/session', (req, res) => {
+  return res.send(users[req.me.id]);
 });
 
 app.listen(PORT, () => {
